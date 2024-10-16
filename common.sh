@@ -106,6 +106,54 @@ get_full_path_script_executed_in() {
     echo "$script_dir"
 }
 
+get_parent_dir_name_of_script() {
+    : '
+        Get Parent Directory Name of the Script
+
+        ShortDesc: This function retrieves the name of the parent directory where the currently executing script is located.
+
+        Description:
+        This function uses the `get_full_path_script_executed_in` function to obtain the full directory path of
+        the currently executing script. It then extracts the parent directory name from the path.
+        If the parent directory name cannot be determined, an error message is displayed, and the function returns 1.
+
+        Parameters:
+        - None
+
+        Returns:
+        - 0: Success (the parent directory name is printed)
+        - 1: Failure (unable to determine parent directory)
+
+        Example Usage:
+        parent_dir_name=$(get_parent_dir_name_of_script)
+        echo "Parent directory name is: $parent_dir_name"
+    '
+
+    # Get the full path where the script is executed
+    local full_path
+    full_path=$(get_full_path_script_executed_in)
+
+    # Check if we successfully retrieved the full path
+    if [[ $? -ne 0 || -z "$full_path" ]]; then
+        echo "Failed to determine the full path of the script."
+        return 1
+    fi
+
+    # Extract the parent directory name from the full path
+    local parent_dir_name
+    parent_dir_name=$(basename "$full_path")
+
+    # Check if we successfully retrieved the parent directory name
+    if [[ -z "$parent_dir_name" ]]; then
+        echo "Failed to determine the parent directory name."
+        return 1
+    fi
+
+    # Print the parent directory name
+    echo "$parent_dir_name"
+    return 0
+}
+
 test_env_variable_defined() {
         : '
 			Test Environment Variable Defined
@@ -141,7 +189,7 @@ test_env_variable_defined() {
         fi
 }
 
-function is_var_true() {
+is_var_true() {
     : '
 		Is Variable True
 
@@ -284,3 +332,4 @@ detect_distribution() {
         return "NONE"
     fi
 }
+

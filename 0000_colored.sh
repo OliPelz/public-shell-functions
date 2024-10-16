@@ -1,6 +1,11 @@
 # no shebang line here, for sourcing ONLY, works in both bash and zsh
 # shebang is not working in sourced files!
 
+
+# file contains:
+# * color definitions in dict
+# * all functions using those color dict to print some kind of colored output
+
 : '
 Color Definition Source file 
 

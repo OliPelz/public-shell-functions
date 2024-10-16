@@ -333,3 +333,33 @@ detect_distribution() {
     fi
 }
 
+check_command_installed() {
+    : '
+    Check Command Installed
+
+    ShortDesc: Checks if a specified command is accessible and installed on the system.
+
+    Description:
+    This function verifies if a given command is available in the system’s PATH, indicating that it
+    is installed and accessible. It is useful for checking dependencies before running other scripts or commands.
+
+    Parameters:
+    - command_name: The name of the command to check (e.g., "curl", "git").
+
+    Returns:
+    - 0: Success (the command is accessible and installed)
+    - 1: Failure (the command is not found)
+
+    Example Usage:
+    check_command_installed "curl" && echo "Curl is installed." || echo "Curl is not installed."
+    '
+
+    local command_name="$1"
+
+    if command -v "$command_name" &> /dev/null; then
+        return 0  # Command is accessible
+    else
+        return 1  # Command is not found
+    fi
+}
+

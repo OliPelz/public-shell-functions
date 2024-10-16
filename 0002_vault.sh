@@ -1,3 +1,6 @@
+# no shebang line here, for sourcing ONLY, works in both bash and zsh
+# shebang is not working in sourced files!
+
 vault() {
   : '
     Vault

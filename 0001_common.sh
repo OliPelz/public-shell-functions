@@ -1,4 +1,5 @@
-#!/usr/bin/env bash
+# no shebang line here, for sourcing ONLY, works in both bash and zsh
+# shebang is not working in sourced files!
 
 # small function collection
 

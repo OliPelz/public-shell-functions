@@ -205,10 +205,8 @@ should_log() {
     current_level_num=$(get_log_level_num "$current_level")
 
     if [ "$message_level_num" -ge "$current_level_num" ]; then
-       echo "true"
 	   return 0
     else
-       echo "false"
        return 1
     fi
 }

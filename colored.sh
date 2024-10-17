@@ -181,57 +181,126 @@ _debug_colored() {
 	_echo_colored ${COLOR} "[${NOW}] [${LEVEL}]" "${CALLER_SCRIPT}$@"
 }
 
-debug_info(){
-    _debug_colored green INFO $@
+# Get numeric log level based on string value
+# so we can do math operations like "greater than"
+get_log_level_num() {
+    case "$1" in
+        DEBUG) echo 1 ;;
+        INFO) echo 2 ;;
+        WARN) echo 3 ;;
+        ERROR) echo 4 ;;
+        FATAL) echo 5 ;;
+        *) echo 0 ;;  # Unknown log level
+    esac
 }
 
-debug_debug(){
-    _debug_colored icyan DEBUG $@
+# Check if the current message level should be printed
+should_log() {
+    local message_level="$1"
+    local current_level="${BASH_LOGLEVEL:-INFO}"  # Default to INFO if BASH_LOGLEVEL is not set
+
+    local message_level_num
+    local current_level_num
+    message_level_num=$(get_log_level_num "$message_level")
+    current_level_num=$(get_log_level_num "$current_level")
+
+    if [ "$message_level_num" -ge "$current_level_num" ]; then
+       echo "true"
+	   return 0
+    else
+       echo "false"
+       return 1
+    fi
 }
 
-debug_warn(){
-    _debug_colored biyellow WARN $@
+: '
+Bash Logger System
+
+ShortDesc: A logging system for Bash scripts with configurable log levels using an environment variable.
+
+Description:
+This logging system provides functions for different log levels (DEBUG, INFO, WARN, ERROR, FATAL), 
+which can be controlled using the `BASH_LOGLEVEL` environment variable. If a log level is set, 
+the corresponding log messages will be printed.
+
+Log Levels: (from less to more severe)
+- DEBUG: Detailed information, typically for diagnosing problems.
+- INFO: Informational messages that highlight the progress of the script.
+- WARN: Potentially harmful situations.
+- ERROR: Error events that might still allow the script to continue.
+- FATAL: Severe errors that will likely cause the script to abort.
+
+Precedence is:
+FATAL: will only print FATAL log level messages
+ERROR: will print FATAL and error messages
+WARN: will print FATAL, ERROR and WARN
+...
+DEBUG will print all log levels
+
+Environment Variable:
+- BASH_LOGLEVEL: Controls which log levels are printed. Supported values: DEBUG, INFO, WARN, ERROR, FATAL.
+  Messages of levels equal to or more severe than the current level will be printed.
+
+Example Usage:
+BASH_LOGLEVEL="DEBUG"
+print_debug "This is a debug message."
+print_info "Informational message."
+print_warn "Warning message."
+print_error "Error message."
+print_fatal "Fatal error message."
+'
+
+############################################################################
+#
+# log_ts_XXX - print log messages based on BASH_LOGLEVEL (like log4j)
+#
+############################################################################
+
+log_info(){
+    should_log INFO && _echo_colored green [INFO] $@
 }
 
-debug_error(){
-    _debug_colored bired ERROR $@
+log_debug(){
+    should_log DEBUG && _echo_colored icyan [DEBUG] $@
 }
 
-debug_warn(){
-    _debug_colored biyellow WARN $@
+log_warn(){
+    should_log WARN && _echo_colored biyellow [WARN] $@
 }
 
-debug_abort(){
-    _debug_colored bipurple ABORT $@
+log_error(){
+    should_log ERROR && _echo_colored bired [ERROR] $@
+}
+
+log_abort(){
+    should_log ABORT && _echo_colored bipurple [ABORT] $@
     exit 1
 }
 
+############################################################################
+#
+# log_ts_XXX - as log_XXX but also printing out timestamp
+#
+############################################################################
 
-###############################################
-
-print_info(){
-	set -x
-    _echo_colored green INFO $@
-	set +x
+log_ts_info(){
+    should_log INFO && _debug_colored green INFO $@
 }
 
-print_debug(){
-    _echo_colored icyan DEBUG $@
+log_ts_debug(){
+    should_log DEBUG && _debug_colored icyan DEBUG $@
 }
 
-print_warn(){
-    _echo_colored biyellow WARN $@
+log_ts_warn(){
+   should_log WARN &&  _debug_colored biyellow WARN $@
 }
 
-print_error(){
-    _echo_colored bired ERROR $@
+log_ts_error(){
+    should_log ERROR && _debug_colored bired ERROR $@
 }
 
-print_warn(){
-    _echo_colored biyellow WARN $@
-}
-
-print_abort(){
-    _echo_colored bipurple ABORT $@
+log_ts_abort(){
+    should_log ABORT && _debug_colored bipurple ABORT $@
     exit 1
 }
+

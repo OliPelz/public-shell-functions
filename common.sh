@@ -155,38 +155,87 @@ get_parent_dir_name_of_script() {
 }
 
 test_env_variable_defined() {
-        : '
-			Test Environment Variable Defined
+    : '
+    Test Environment Variable (Defined, Non-Empty, or Both)
 
-			ShortDesc: This function checks if a specified environment variable is defined and non-empty.
+    ShortDesc: This function checks if a specified environment variable is defined, non-empty, or both.
 
-			Description:
-			This function takes the name of an environment variable as an argument and checks
-			if it is defined and not an empty string. It returns 0 if the variable is set,
-			and 1 if it is not defined or is an empty string.
+    Description:
+    This function takes the name of an environment variable as the first argument and an optional mode
+    ("defined" or "non-empty") as the second argument. By default, it checks if the variable is defined
+    and not empty. If "defined" is provided, it checks if the variable is defined, regardless of its value.
+    If "non-empty" is provided, it checks if the variable is non-empty, regardless of whether its defined.
 
-			Parameters:
-			- ARG: The name of the environment variable to check.
+    Parameters:
+    - ARG: The name of the environment variable to check.
+    - MODE (optional): The mode to check ("defined", "non-empty", or default).
 
-			Returns:
-			- 0: Success (the variable is defined and non-empty)
-			- 1: Failure (the variable is not defined or is an empty string)
+    Returns:
+    - 0: Success (the condition specified by the mode is met)
+    - 1: Failure (the condition specified by the mode is not met)
 
-			Example Usage:
-			if test_env_variable_defined "MY_VAR"; then
-				echo "MY_VAR is defined and non-empty."
-			else
-				echo "MY_VAR is not defined or is empty."
-			fi
-		'
-        ARG=$1
-        CMD='test -z ${'$ARG'+x}'
-        if eval $CMD;
-        then
-                return 1 # variable is not defined or empty string
-        else
-                return 0  # variable is set
-        fi
+    Example Usages:
+    
+	1. Check if variable is defined and non-empty (default mode):
+
+
+		MY_VAR="Hello"
+		if test_env_variable_defined "MY_VAR"; then
+			echo "MY_VAR is defined and non-empty."
+		fi
+		# Output: MY_VAR is defined and non-empty.
+
+	2. Check if variable is defined (MODE="defined"):
+
+		unset MY_VAR
+		if test_env_variable_defined "MY_VAR" "defined"; then
+			echo "MY_VAR is defined."
+		else
+			echo "MY_VAR is not defined."
+		fi
+		# Output: MY_VAR is not defined.
+
+	3. Check if variable is non-empty (MODE="non-empty"):
+
+		MY_VAR=""
+		if test_env_variable_defined "MY_VAR" "non-empty"; then
+			echo "MY_VAR is non-empty."
+		else
+			echo "MY_VAR is empty or not defined."
+		fi
+		# Output: MY_VAR is empty or not defined.
+
+    '
+
+    local ARG="$1"
+    local MODE="${2:-both}"
+
+    case "$MODE" in
+        "defined")
+            # Check if the variable is defined
+            if [ "${!ARG+set}" = "set" ]; then
+                return 0  # Variable is defined
+            else
+                return 1  # Variable is not defined
+            fi
+            ;;
+        "non-empty")
+            # Check if the variable is non-empty
+            if [ -n "${!ARG}" ]; then
+                return 0  # Variable is non-empty
+            else
+                return 1  # Variable is empty or not defined
+            fi
+            ;;
+        "both" | *)
+            # Default mode: Check if the variable is defined and not empty
+            if [ "${!ARG+set}" = "set" ] && [ -n "${!ARG}" ]; then
+                return 0  # Variable is defined and non-empty
+            else
+                return 1  # Variable is not defined or is empty
+            fi
+            ;;
+    esac
 }
 
 is_var_true() {

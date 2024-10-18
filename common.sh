@@ -456,3 +456,41 @@ check_string_starts_with() {
     fi
 }
 
+list_subdirectories() {
+    : '
+        List Subdirectories
+
+        ShortDesc: This function lists subdirectory names up to a specified depth.
+
+        Description:
+        Given a directory path, this function prints the names of its subdirectories up to the specified depth.
+        By default, it lists the subdirectories at the first level (max depth of 1). Optionally, a different
+        maximum depth can be provided.
+
+        Parameters:
+        - dir: The directory path where to search for subdirectories.
+        - max_depth: Optional. The maximum depth for searching subdirectories (default is 1).
+
+        Returns:
+        - 0: Success (subdirectories printed)
+        - 1: Failure (directory does not exist or invalid depth)
+
+        Example Usage:
+        list_subdirectories "/path/to/directory"
+        list_subdirectories "/path/to/directory" 2
+    '
+
+    local dir="$1"
+    local max_depth="${2:-1}"
+
+    # Check if the provided directory exists
+    if [ ! -d "$dir" ]; then
+        echo "Error: Directory does not exist: $dir"
+        return 1
+    fi
+
+    # Find and list subdirectories up to the specified max depth
+    find "$dir" -mindepth 1 -maxdepth "$max_depth" -type d -exec basename {} \;
+}
+
+

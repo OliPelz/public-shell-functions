@@ -363,3 +363,47 @@ check_command_installed() {
     fi
 }
 
+check_string_starts_with() {
+    : '
+    Check If String Starts With Substring
+
+    ShortDesc: Determines if a given string starts with a specified substring.
+
+    Description:
+    This function checks if a provided string starts with a specific substring.
+    It also has an optional parameter to ignore leading whitespaces in the string
+    before performing the comparison.
+
+    Parameters:
+    - string: The string to check.
+    - substring: The substring to check if the string starts with.
+    - ignore_whitespace (optional): If set to "true", leading whitespaces in the string
+      will be ignored before the comparison.
+
+    Returns:
+    - 0: If the string starts with the substring.
+    - 1: If the string does not start with the substring.
+
+    Example Usage:
+    check_string_starts_with "Hello World" "Hello"      # Returns 0
+    check_string_starts_with "   Hello World" "Hello" true # Returns 0
+    check_string_starts_with "Goodbye World" "Hello"    # Returns 1
+    '
+
+    local string="$1"
+    local substring="$2"
+    local ignore_whitespace="${3:-false}"
+
+    if [ "$ignore_whitespace" = "true" ]; then
+        # Trim leading whitespace
+        string="$(echo "$string" | sed 's/^[[:space:]]*//')"
+    fi
+
+    # Check if the string starts with the substring
+    if [[ "$string" == "$substring"* ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+

@@ -255,23 +255,23 @@ print_fatal "Fatal error message."
 ############################################################################
 
 log_info(){
-    should_log INFO && _echo_colored green [INFO] $@
+    should_log INFO && _echo_colored green [INFO] "$@"
 }
 
 log_debug(){
-    should_log DEBUG && _echo_colored icyan [DEBUG] $@
+    should_log DEBUG && _echo_colored icyan [DEBUG] "$@"
 }
 
 log_warn(){
-    should_log WARN && _echo_colored biyellow [WARN] $@
+    should_log WARN && _echo_colored biyellow [WARN] "$@"
 }
 
 log_error(){
-    should_log ERROR && _echo_colored bired [ERROR] $@
+    should_log ERROR && _echo_colored bired [ERROR] "$@"
 }
 
 log_abort(){
-    should_log ABORT && _echo_colored bipurple [ABORT] $@
+    should_log ABORT && _echo_colored bipurple [ABORT] "$@"
     exit 1
 }
 
@@ -282,23 +282,23 @@ log_abort(){
 ############################################################################
 
 log_ts_info(){
-    should_log INFO && _debug_colored green INFO $@
+    should_log INFO && _debug_colored green INFO "$@"
 }
 
 log_ts_debug(){
-    should_log DEBUG && _debug_colored icyan DEBUG $@
+    should_log DEBUG && _debug_colored icyan DEBUG "$@"
 }
 
 log_ts_warn(){
-   should_log WARN &&  _debug_colored biyellow WARN $@
+   should_log WARN &&  _debug_colored biyellow WARN "$@"
 }
 
 log_ts_error(){
-    should_log ERROR && _debug_colored bired ERROR $@
+    should_log ERROR && _debug_colored bired ERROR "$@"
 }
 
 log_ts_abort(){
-    should_log ABORT && _debug_colored bipurple ABORT $@
+    should_log ABORT && _debug_colored bipurple ABORT "$@"
     exit 1
 }
 

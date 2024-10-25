@@ -93,8 +93,7 @@ get_full_path_script_executed_in() {
 		- 1: Failure (unsupported shell)
 
 		Example Usage:
-		script_directory=$(get_full_path_script_executed_in)
-		echo "Script is located in: $script_directory"
+		echo "Script is located in: $(get_full_path_script_executed_in)"
     '
     local MYSHELL_NAME=$(get_current_shell_name)
     if [ "$MYSHELL_NAME" = "bash" ]; then

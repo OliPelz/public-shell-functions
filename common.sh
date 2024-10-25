@@ -1,6 +1,9 @@
 # no shebang line here, for sourcing ONLY, works in both bash and zsh
 # shebang is not working in sourced files!
-
+#
+# to source this file into any script do:
+# s=${BASH_SOURCE:-${(%):-%x}} d=$(cd "$(dirname "$s")" && pwd) && source $d/common.sh
+#
 # small function collection
 
 is_root() {

@@ -32,8 +32,8 @@ if ! temp_test_env_variable_defined DOTFILES_REPO_FULL_PATH; then
     has_error=true
 fi
 # now source some external functions
-source ${DOTFILES_REPO_FULL_PATH}/src/common.sh
-source ${DOTFILES_REPO_FULL_PATH}/src/colored.sh
+source ${DOTFILES_REPO_FULL_PATH}/src/0001_common.sh
+source ${DOTFILES_REPO_FULL_PATH}/src/0002_colored.sh
 
 #########################################################################################################
 ## now we can use all my external functions

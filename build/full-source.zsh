@@ -1,152 +1,3 @@
-if [ -n "$BASH_VERSION" ]; then
-declare -A bash_colors
-bash_colors["black"]="\033[0;30m"
-bash_colors["red"]="\033[0;31m"
-bash_colors["green"]="\033[0;32m"
-bash_colors["yellow"]="\033[0;33m"
-bash_colors["blue"]="\033[0;34m"
-bash_colors["purple"]="\033[0;35m"
-bash_colors["cyan"]="\033[0;36m"
-bash_colors["white"]="\033[0;37m"
-bash_colors["bblack"]="\033[1;30m"
-bash_colors["bred"]="\033[1;31m"
-bash_colors["bgreen"]="\033[1;32m"
-bash_colors["byellow"]="\033[1;33m"
-bash_colors["bblue"]="\033[1;34m"
-bash_colors["bpurple"]="\033[1;35m"
-bash_colors["bcyan"]="\033[1;36m"
-bash_colors["bwhite"]="\033[1;37m"
-bash_colors["iblack"]="\033[0;90m"
-bash_colors["ired"]="\033[0;91m"
-bash_colors["igreen"]="\033[0;92m"
-bash_colors["iyellow"]="\033[0;93m"
-bash_colors["iblue"]="\033[0;94m"
-bash_colors["ipurple"]="\033[0;95m"
-bash_colors["icyan"]="\033[0;96m"
-bash_colors["iwhite"]="\033[0;97m"
-bash_colors["biblack"]="\033[1;90m"
-bash_colors["bired"]="\033[1;91m"
-bash_colors["bigreen"]="\033[1;92m"
-bash_colors["biyellow"]="\033[1;93m"
-bash_colors["biblue"]="\033[1;94m"
-bash_colors["bipurple"]="\033[1;95m"
-bash_colors["bicyan"]="\033[1;96m"
-bash_colors["biwhite"]="\033[1;97m"
-bash_colors["reset"]="\033[0m"
-elif [ -n "$ZSH_VERSION" ]; then
-typeset -A zsh_colors
-zsh_colors=(
-[black]="%F{black}"
-[red]="%F{red}"
-[green]="%F{green}"
-[yellow]="%F{yellow}"
-[blue]="%F{blue}"
-[purple]="%F{magenta}"
-[cyan]="%F{cyan}"
-[white]="%F{white}"
-[bblack]="%F{black}%B"
-[bred]="%F{red}%B"
-[bgreen]="%F{green}%B"
-[byellow]="%F{yellow}%B"
-[bblue]="%F{blue}%B"
-[bpurple]="%F{magenta}%B"
-[bcyan]="%F{cyan}%B"
-[bwhite]="%F{white}%B"
-[iblack]="%F{black}"
-[ired]="%F{red}"
-[igreen]="%F{green}"
-[iyellow]="%F{yellow}"
-[iblue]="%F{blue}"
-[ipurple]="%F{magenta}"
-[icyan]="%F{cyan}"
-[iwhite]="%F{white}"
-[biblack]="%F{black}%B"
-[bired]="%F{red}%B"
-[bigreen]="%F{green}%B"
-[biyellow]="%F{yellow}%B"
-[biblue]="%F{blue}%B"
-[bipurple]="%F{magenta}%B"
-[bicyan]="%F{cyan}%B"
-[biwhite]="%F{white}%B"
-[reset]="%f%b"
-)
-fi
-_echo_colored() {
-local COLOR=${1}
-local COLORED_CONTENT=${2}
-local NONCOLORED_CONTENT=${3:-""} # non-colored content goes in here
-if [ -n "$BASH_VERSION" ]; then
-echo -e "${bash_colors[${COLOR}]}${COLORED_CONTENT}\e[0m ${NONCOLORED_CONTENT}"
-elif [ -n "$ZSH_VERSION" ]; then
-print -P "${zsh_colors[${COLOR}]}${COLORED_CONTENT}%f ${NONCOLORED_CONTENT}"
-fi
-}
-_debug_colored() {
-local COLOR=${1}
-local LEVEL=${2}
-local NOW=$(date +"%Y-%m-%d %H:%M:%S.%3N")
-local CALLER_SCRIPT=""
-shift 2
-if [[ -z "$PS1"  && -n "$DEBUG" ]]; then
-CALLER_SCRIPT="$(basename "$(caller 1)") "
-fi
-_echo_colored ${COLOR} "[${NOW}] [${LEVEL}]" "${CALLER_SCRIPT}$@"
-}
-get_log_level_num() {
-case "$1" in
-DEBUG) echo 1 ;;
-INFO) echo 2 ;;
-WARN) echo 3 ;;
-ERROR) echo 4 ;;
-FATAL) echo 5 ;;
-*) echo 0 ;;
-esac
-}
-should_log() {
-local message_level="$1"
-local current_level="${BASH_LOGLEVEL:-INFO}"  # Default to INFO if BASH_LOGLEVEL is not set
-local message_level_num
-local current_level_num
-message_level_num=$(get_log_level_num "$message_level")
-current_level_num=$(get_log_level_num "$current_level")
-if [ "$message_level_num" -ge "$current_level_num" ]; then
-return 0
-else
-return 1
-fi
-}
-log_info(){
-should_log INFO && _echo_colored green [INFO] "$@"
-}
-log_debug(){
-should_log DEBUG && _echo_colored icyan [DEBUG] "$@"
-}
-log_warn(){
-should_log WARN && _echo_colored biyellow [WARN] "$@"
-}
-log_error(){
-should_log ERROR && _echo_colored bired [ERROR] "$@"
-}
-log_abort(){
-should_log ABORT && _echo_colored bipurple [ABORT] "$@"
-exit 1
-}
-log_ts_info(){
-should_log INFO && _debug_colored green INFO "$@"
-}
-log_ts_debug(){
-should_log DEBUG && _debug_colored icyan DEBUG "$@"
-}
-log_ts_warn(){
-should_log WARN &&  _debug_colored biyellow WARN "$@"
-}
-log_ts_error(){
-should_log ERROR && _debug_colored bired ERROR "$@"
-}
-log_ts_abort(){
-should_log ABORT && _debug_colored bipurple ABORT "$@"
-exit 1
-}
 is_root() {
 if [[ $EUID -ne 0 ]]; then
 return 1
@@ -299,6 +150,155 @@ echo "Error: Directory does not exist: $dir"
 return 1
 fi
 find "$dir" -mindepth 1 -maxdepth "$max_depth" -type d -exec basename {} \;
+}
+if [ -n "$BASH_VERSION" ]; then
+declare -A bash_colors
+bash_colors["black"]="\033[0;30m"
+bash_colors["red"]="\033[0;31m"
+bash_colors["green"]="\033[0;32m"
+bash_colors["yellow"]="\033[0;33m"
+bash_colors["blue"]="\033[0;34m"
+bash_colors["purple"]="\033[0;35m"
+bash_colors["cyan"]="\033[0;36m"
+bash_colors["white"]="\033[0;37m"
+bash_colors["bblack"]="\033[1;30m"
+bash_colors["bred"]="\033[1;31m"
+bash_colors["bgreen"]="\033[1;32m"
+bash_colors["byellow"]="\033[1;33m"
+bash_colors["bblue"]="\033[1;34m"
+bash_colors["bpurple"]="\033[1;35m"
+bash_colors["bcyan"]="\033[1;36m"
+bash_colors["bwhite"]="\033[1;37m"
+bash_colors["iblack"]="\033[0;90m"
+bash_colors["ired"]="\033[0;91m"
+bash_colors["igreen"]="\033[0;92m"
+bash_colors["iyellow"]="\033[0;93m"
+bash_colors["iblue"]="\033[0;94m"
+bash_colors["ipurple"]="\033[0;95m"
+bash_colors["icyan"]="\033[0;96m"
+bash_colors["iwhite"]="\033[0;97m"
+bash_colors["biblack"]="\033[1;90m"
+bash_colors["bired"]="\033[1;91m"
+bash_colors["bigreen"]="\033[1;92m"
+bash_colors["biyellow"]="\033[1;93m"
+bash_colors["biblue"]="\033[1;94m"
+bash_colors["bipurple"]="\033[1;95m"
+bash_colors["bicyan"]="\033[1;96m"
+bash_colors["biwhite"]="\033[1;97m"
+bash_colors["reset"]="\033[0m"
+elif [ -n "$ZSH_VERSION" ]; then
+typeset -A zsh_colors
+zsh_colors=(
+[black]="%F{black}"
+[red]="%F{red}"
+[green]="%F{green}"
+[yellow]="%F{yellow}"
+[blue]="%F{blue}"
+[purple]="%F{magenta}"
+[cyan]="%F{cyan}"
+[white]="%F{white}"
+[bblack]="%F{black}%B"
+[bred]="%F{red}%B"
+[bgreen]="%F{green}%B"
+[byellow]="%F{yellow}%B"
+[bblue]="%F{blue}%B"
+[bpurple]="%F{magenta}%B"
+[bcyan]="%F{cyan}%B"
+[bwhite]="%F{white}%B"
+[iblack]="%F{black}"
+[ired]="%F{red}"
+[igreen]="%F{green}"
+[iyellow]="%F{yellow}"
+[iblue]="%F{blue}"
+[ipurple]="%F{magenta}"
+[icyan]="%F{cyan}"
+[iwhite]="%F{white}"
+[biblack]="%F{black}%B"
+[bired]="%F{red}%B"
+[bigreen]="%F{green}%B"
+[biyellow]="%F{yellow}%B"
+[biblue]="%F{blue}%B"
+[bipurple]="%F{magenta}%B"
+[bicyan]="%F{cyan}%B"
+[biwhite]="%F{white}%B"
+[reset]="%f%b"
+)
+fi
+_echo_colored() {
+local COLOR=${1}
+local COLORED_CONTENT=${2}
+local NONCOLORED_CONTENT=${3:-""} # non-colored content goes in here
+if [ -n "$BASH_VERSION" ]; then
+echo -e "${bash_colors[${COLOR}]}${COLORED_CONTENT}\e[0m ${NONCOLORED_CONTENT}"
+elif [ -n "$ZSH_VERSION" ]; then
+print -P "${zsh_colors[${COLOR}]}${COLORED_CONTENT}%f ${NONCOLORED_CONTENT}"
+fi
+}
+_debug_colored() {
+local COLOR=${1}
+local LEVEL=${2}
+local NOW=$(date +"%Y-%m-%d %H:%M:%S.%3N")
+local CALLER_SCRIPT=""
+shift 2
+if [[ -z "$PS1"  && -n "$DEBUG" ]]; then
+CALLER_SCRIPT="$(basename "$(caller 1)") "
+fi
+_echo_colored ${COLOR} "[${NOW}] [${LEVEL}]" "${CALLER_SCRIPT}$@"
+}
+get_log_level_num() {
+case "$1" in
+DEBUG) echo 1 ;;
+INFO) echo 2 ;;
+WARN) echo 3 ;;
+ERROR) echo 4 ;;
+FATAL) echo 5 ;;
+*) echo 0 ;;
+esac
+}
+should_log() {
+local message_level="$1"
+local current_level="${BASH_LOGLEVEL:-INFO}"  # Default to INFO if BASH_LOGLEVEL is not set
+local message_level_num
+local current_level_num
+message_level_num=$(get_log_level_num "$message_level")
+current_level_num=$(get_log_level_num "$current_level")
+if [ "$message_level_num" -ge "$current_level_num" ]; then
+return 0
+else
+return 1
+fi
+}
+log_info(){
+should_log INFO && _echo_colored green [INFO] "$@"
+}
+log_debug(){
+should_log DEBUG && _echo_colored icyan [DEBUG] "$@"
+}
+log_warn(){
+should_log WARN && _echo_colored biyellow [WARN] "$@"
+}
+log_error(){
+should_log ERROR && _echo_colored bired [ERROR] "$@"
+}
+log_abort(){
+should_log ABORT && _echo_colored bipurple [ABORT] "$@"
+exit 1
+}
+log_ts_info(){
+should_log INFO && _debug_colored green INFO "$@"
+}
+log_ts_debug(){
+should_log DEBUG && _debug_colored icyan DEBUG "$@"
+}
+log_ts_warn(){
+should_log WARN &&  _debug_colored biyellow WARN "$@"
+}
+log_ts_error(){
+should_log ERROR && _debug_colored bired ERROR "$@"
+}
+log_ts_abort(){
+should_log ABORT && _debug_colored bipurple ABORT "$@"
+exit 1
 }
 function download_from_private_github {
 local GITHUB_TOKEN=$1

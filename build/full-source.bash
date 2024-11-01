@@ -224,82 +224,6 @@ zsh_colors=(
 [reset]="%f%b"
 )
 fi
-_echo_colored() {
-local COLOR=${1}
-local COLORED_CONTENT=${2}
-local NONCOLORED_CONTENT=${3:-""} # non-colored content goes in here
-if [ -n "$BASH_VERSION" ]; then
-echo -e "${bash_colors[${COLOR}]}${COLORED_CONTENT}\e[0m ${NONCOLORED_CONTENT}"
-elif [ -n "$ZSH_VERSION" ]; then
-print -P "${zsh_colors[${COLOR}]}${COLORED_CONTENT}%f ${NONCOLORED_CONTENT}"
-fi
-}
-_debug_colored() {
-local COLOR=${1}
-local LEVEL=${2}
-local NOW=$(date +"%Y-%m-%d %H:%M:%S.%3N")
-local CALLER_SCRIPT=""
-shift 2
-if [[ -z "$PS1"  && -n "$DEBUG" ]]; then
-CALLER_SCRIPT="$(basename "$(caller 1)") "
-fi
-_echo_colored ${COLOR} "[${NOW}] [${LEVEL}]" "${CALLER_SCRIPT}$@"
-}
-get_log_level_num() {
-case "$1" in
-DEBUG) echo 1 ;;
-INFO) echo 2 ;;
-WARN) echo 3 ;;
-ERROR) echo 4 ;;
-FATAL) echo 5 ;;
-*) echo 0 ;;
-esac
-}
-should_log() {
-local message_level="$1"
-local current_level="${BASH_LOGLEVEL:-INFO}"  # Default to INFO if BASH_LOGLEVEL is not set
-local message_level_num
-local current_level_num
-message_level_num=$(get_log_level_num "$message_level")
-current_level_num=$(get_log_level_num "$current_level")
-if [ "$message_level_num" -ge "$current_level_num" ]; then
-return 0
-else
-return 1
-fi
-}
-log_info(){
-should_log INFO && _echo_colored green [INFO] "$@"
-}
-log_debug(){
-should_log DEBUG && _echo_colored icyan [DEBUG] "$@"
-}
-log_warn(){
-should_log WARN && _echo_colored biyellow [WARN] "$@"
-}
-log_error(){
-should_log ERROR && _echo_colored bired [ERROR] "$@"
-}
-log_abort(){
-should_log ABORT && _echo_colored bipurple [ABORT] "$@"
-exit 1
-}
-log_ts_info(){
-should_log INFO && _debug_colored green INFO "$@"
-}
-log_ts_debug(){
-should_log DEBUG && _debug_colored icyan DEBUG "$@"
-}
-log_ts_warn(){
-should_log WARN &&  _debug_colored biyellow WARN "$@"
-}
-log_ts_error(){
-should_log ERROR && _debug_colored bired ERROR "$@"
-}
-log_ts_abort(){
-should_log ABORT && _debug_colored bipurple ABORT "$@"
-exit 1
-}
 function download_from_private_github {
 local GITHUB_TOKEN=$1
 local REPO_OWNER=$2
@@ -471,6 +395,115 @@ else
 echo "No action specified. Use -a to add or -r to remove."
 return 1
 fi
+}
+_echo_colored() {
+local COLOR=${1}
+local COLORED_CONTENT=${2}
+local NONCOLORED_CONTENT=${3:-""} # non-colored content goes in here
+if [ -n "$BASH_VERSION" ]; then
+echo -e "${bash_colors[${COLOR}]}${COLORED_CONTENT}\e[0m ${NONCOLORED_CONTENT}"
+elif [ -n "$ZSH_VERSION" ]; then
+print -P "${zsh_colors[${COLOR}]}${COLORED_CONTENT}%f ${NONCOLORED_CONTENT}"
+fi
+}
+_debug_colored() {
+local COLOR=${1}
+local LEVEL=${2}
+local NOW=$(date +"%Y-%m-%d %H:%M:%S.%3N")
+local CALLER_SCRIPT=""
+shift 2
+if [[ -z "$PS1"  && -n "$DEBUG" ]]; then
+CALLER_SCRIPT="$(basename "$(caller 1)") "
+fi
+_echo_colored ${COLOR} "[${NOW}] [${LEVEL}]" "${CALLER_SCRIPT}$@"
+}
+get_log_level_num() {
+case "$1" in
+DEBUG) echo 1 ;;
+INFO) echo 2 ;;
+WARN) echo 3 ;;
+ERROR) echo 4 ;;
+FATAL) echo 5 ;;
+*) echo 0 ;;
+esac
+}
+should_log() {
+local message_level="$1"
+local current_level="${BASH_LOGLEVEL:-INFO}"  # Default to INFO if BASH_LOGLEVEL is not set
+local message_level_num
+local current_level_num
+message_level_num=$(get_log_level_num "$message_level")
+current_level_num=$(get_log_level_num "$current_level")
+if [ "$message_level_num" -ge "$current_level_num" ]; then
+return 0
+else
+return 1
+fi
+}
+log_info(){
+should_log INFO && _echo_colored green [INFO] "$@"
+}
+log_debug(){
+should_log DEBUG && _echo_colored icyan [DEBUG] "$@"
+}
+log_warn(){
+should_log WARN && _echo_colored biyellow [WARN] "$@"
+}
+log_error(){
+should_log ERROR && _echo_colored bired [ERROR] "$@"
+}
+log_abort(){
+should_log ABORT && _echo_colored bipurple [ABORT] "$@"
+exit 1
+}
+log_ts_info(){
+should_log INFO && _debug_colored green INFO "$@"
+}
+log_ts_debug(){
+should_log DEBUG && _debug_colored icyan DEBUG "$@"
+}
+log_ts_warn(){
+should_log WARN &&  _debug_colored biyellow WARN "$@"
+}
+log_ts_error(){
+should_log ERROR && _debug_colored bired ERROR "$@"
+}
+log_ts_abort(){
+should_log ABORT && _debug_colored bipurple ABORT "$@"
+exit 1
+}
+parse_yaml() {
+local parse_string="$1"
+local input_file="$2"
+local output_mode="${3:-stdout}"
+local outfile_path="$4"
+if [[ -z "$parse_string" || -z "$input_file" ]]; then
+echo "Usage: parse_yaml <parse_string> <input_file> [output_mode] [outfile_path]"
+return 1
+fi
+local parsed_output
+parsed_output=$(yq -r "$parse_string" <(grep -v '^#' "$input_file") 2>/dev/null)
+if [[ $? -ne 0 ]]; then
+echo "Error: Failed to parse YAML file."
+return 1
+fi
+case "$output_mode" in
+inline)
+echo "$parsed_output" > "$input_file"
+;;
+outfile)
+if [[ -n "$outfile_path" ]]; then
+echo "$parsed_output" > "$outfile_path"
+else
+echo "Error: Outfile path not specified."
+return 1
+fi
+;;
+stdout|*)
+echo "$parsed_output"
+;;
+esac
+return 0
 }
 function pcurl_wrapper {
 local url="$1"

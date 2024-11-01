@@ -3,10 +3,10 @@
 * no dependencies
 * works for both bash and zsh
 
-* develop functions in `./src`
-* dont use source command in those files
+* develop ONLY functions in `./src`
+* dont use source command in any files in `./src`
 * if something depends on each other, make the dependency resolution by putting dependant files with lower numbers
-* type `make compile` to concat and minify all script files
+* type `make requirements && make compile` to concat and minify all script files
 * use only compiled and minified `build/*` files for sourcing in external projects
 
 NOTES: 

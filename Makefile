@@ -1,12 +1,9 @@
 include ./makefiles_inc/makefile_colored_help.inc
 .DEFAULT_GOAL := help
 
-add_hooks:
-	git config core.hooksPath hooks
-
 ##########################################################################################
 ## prerequisites:
-requirements: add_hooks ## install all requirements
+requirements: git_add_hooks ## install all requirements
 	mkdir -p ./external-deps && \
 	( \
 	$(MAKE) clone-or-pull GIT_REPO_URL=https://github.com/OliPelz/public-shell-scripts.git TARGET_DIR=./external-deps/public-shell-scripts TO_GITIGNORE=true; \

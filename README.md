@@ -17,8 +17,16 @@ NOTES:
 
 ## how to start
 
+to first time init run
+
+```bash
+./init.sh
+```
+
+if you want to compile without former init run
+
 ```bash
 ./first-time-run.sh
 ```
 
-Note: after running `make clean` you need to run `./first-time-run.sh` again
+Note: after running `make clean` you need to run `./init.sh` again

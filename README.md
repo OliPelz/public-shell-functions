@@ -20,3 +20,5 @@ NOTES:
 ```bash
 ./first-time-run.sh
 ```
+
+Note: after running `make clean` you need to run `./first-time-run.sh` again

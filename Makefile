@@ -19,5 +19,6 @@ compile:  ## install all dotfiles
 	for i in make_scripts/[0-9]*; do set -e && ./$$i; done
 clean:    ## clean all dotfiles
 	@export DOTFILES_REPO_FULL_PATH=$$PWD; \
-	./make_scripts/__remove_all_dotfiles.sh \
+	./make_scripts/__remove_all_dotfiles.sh; \
+	rm -rf makefiles_inc external-deps; \
 	rm $$HOME/.env/__compiled_envs_for_shells/bash-complete-env.source.sh.zsh

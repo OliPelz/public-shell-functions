@@ -34,6 +34,7 @@ fi
 # now source some external functions
 source ${DOTFILES_REPO_FULL_PATH}/src/0001_common.sh
 source ${DOTFILES_REPO_FULL_PATH}/src/0002_colored.sh
+source ${DOTFILES_REPO_FULL_PATH}/src/0003_logging.sh
 
 #########################################################################################################
 ## now we can use all my external functions

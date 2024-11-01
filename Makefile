@@ -2,7 +2,7 @@ include ./makefiles_inc/makefile_colored_help.inc
 .DEFAULT_GOAL := help
 
 add_hooks:
-	"git config core.hooksPath hooks"
+	git config core.hooksPath hooks
 
 ##########################################################################################
 ## prerequisites:

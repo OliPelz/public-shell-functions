@@ -177,7 +177,7 @@ lineinfile() {
 
     # Check for required parameters
     if [[ -z "$file" || -z "$line" ]]; then
-        echo "Usage: lineinfile -f <file> -l <line> [-a | -r] [-p <beginning|end>] [-i] [-o <output_file>]" >&2
+        echo "Usage: lineinfile -f <file> -l <line> [-a | -r] [-p <beginning|end>] [-d] [-o <output_file>]" >&2
         return 1
     fi
 

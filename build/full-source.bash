@@ -364,7 +364,7 @@ fi
 return 0
 }
 lineinfile() {
-local file line action ignore_existing output_file position="end"
+local file line action disable_idempotency="false" output_file position="end"
 while [[ "$#" -gt 0 ]]; do
 case "$1" in
 -f) file="$2"; shift ;;
@@ -372,34 +372,34 @@ case "$1" in
 -a) action="add" ;;
 -r) action="remove" ;;
 -p) position="$2"; shift ;;
--i) ignore_existing=true ;;
+-d) disable_idempotency="true" ;;
 -o) output_file="$2"; shift ;;
 *) echo "Unknown option: $1"; return 1 ;;
 esac
 shift
 done
 if [[ -z "$file" || -z "$line" ]]; then
-echo "Usage: lineinfile -f <file> -l <line> [-a | -r] [-p <beginning|end>] [-i] [-o <output_file>]"
+echo "Usage: lineinfile -f <file> -l <line> [-a | -r] [-p <beginning|end>] [-i] [-o <output_file>]" >&2
 return 1
 fi
 add_line() {
-if [[ "$ignore_existing" == true ]] && grep -qF -- "$line" "$file"; then
-echo "Line already exists and ignoring: $line"
+if [[ "$disable_idempotency" == "false" ]] && grep -qF -- "$line" "$file"; then
+log_debug "Line already exists and ignoring: $line"
 else
 if [[ "$position" == "beginning" ]]; then
 sed -i "1i $line" "$file"
 else
 echo "$line" >> "$file"
 fi
-echo "Line added at $position: $line"
+log_debug "Line added at $position: $line"
 fi
 }
 remove_line() {
 if grep -qF -- "$line" "$file"; then
 sed -i "/^$(echo "$line" | sed 's/[\/&]/\\&/g')$/d" "$file"
-echo "Line removed: $line"
+log_debug "Line removed: $line"
 else
-echo "Line not found: $line"
+log_debug "Line not found: $line"
 fi
 }
 if [[ -n "$output_file" ]]; then
@@ -411,7 +411,7 @@ add_line
 elif [[ "$action" == "remove" ]]; then
 remove_line
 else
-echo "No action specified. Use -a to add or -r to remove."
+log_error_stderr "No action specified. Use -a to add or -r to remove."
 return 1
 fi
 }

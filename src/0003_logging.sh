@@ -146,6 +146,14 @@ log_abort(){
 #
 ############################################################################
 
+log_info_stderr(){
+    should_log INFO && _echo_colored green [INFO] "$@"
+}
+
+log_debug_stderr(){
+    should_log DEBUG && _echo_colored icyan [DEBUG] "$@"
+}
+
 log_warn_stderr(){
     should_log WARN && _echo_colored biyellow [WARN] "$@" >&2
 }

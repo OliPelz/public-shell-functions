@@ -478,6 +478,16 @@ log_abort(){
 should_log ABORT && _echo_colored bipurple [ABORT] "$@"
 exit 1
 }
+log_warn_stderr(){
+should_log WARN && _echo_colored biyellow [WARN] "$@" >&2
+}
+log_error_stderr(){
+should_log ERROR && _echo_colored bired [ERROR] "$@" >&2
+}
+log_abort_stderr(){
+should_log ABORT && _echo_colored bipurple [ABORT] "$@" >&2
+exit 1
+}
 log_ts_info(){
 should_log INFO && _debug_colored green INFO "$@"
 }

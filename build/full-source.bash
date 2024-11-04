@@ -269,6 +269,25 @@ done
 echo "Directory downloaded successfully to $TARGET_DIR."
 return 0
 }
+git_clone_or_pull() {
+local repo_url="$1"
+local target_dir="$2"
+local add_to_gitignore="${3:-false}"
+local org_repo_name
+org_repo_name=$(basename "$repo_url" .git)
+local repo_dir="${target_dir:-$org_repo_name}"
+if [ -d "$repo_dir" ]; then
+echo "Repository '$org_repo_name' already exists. Pulling latest changes..."
+(cd "$repo_dir" && git pull > /dev/null) || return 1
+else
+echo "Cloning repository '$org_repo_name' into '$repo_dir'..."
+git clone "$repo_url" "$repo_dir" || return 1
+fi
+if [ "$add_to_gitignore" == "true" ]; then
+[ -f .gitignore ] && grep -q "^${repo_dir}$" .gitignore || echo "$repo_dir" >> .gitignore
+fi
+return 0
+}
 get_url() {
 local url=""
 local dest=""

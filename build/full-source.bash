@@ -519,13 +519,13 @@ local input_file="$2"
 local output_mode="${3:-stdout}"
 local outfile_path="$4"
 if [[ -z "$parse_string" || -z "$input_file" ]]; then
-echo "Usage: parse_yaml <parse_string> <input_file> [output_mode] [outfile_path]"
+echo "Usage: parse_yaml <parse_string> <input_file> [output_mode] [outfile_path]" >&2
 return 1
 fi
 local parsed_output
 parsed_output=$(yq -r "$parse_string" <(grep -v '^#' "$input_file") 2>/dev/null)
 if [[ $? -ne 0 ]]; then
-echo "Error: Failed to parse YAML file."
+log_error_stderr "Failed to parse YAML file."
 return 1
 fi
 case "$output_mode" in
@@ -536,7 +536,7 @@ outfile)
 if [[ -n "$outfile_path" ]]; then
 echo "$parsed_output" > "$outfile_path"
 else
-echo "Error: Outfile path not specified."
+log_error_stderr "Error: Outfile path not specified."
 return 1
 fi
 ;;

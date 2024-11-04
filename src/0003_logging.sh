@@ -118,11 +118,7 @@ log_info(){
 }
 
 log_info2(){
-    should_log INFO && _echo_colored bgreen [INFO] "$@"
-}
-
-log_info3(){
-    should_log INFO && _echo_colored igreen [INFO] "$@"
+    should_log INFO && _echo_colored cyan [INFO] "$@"
 }
 
 log_debug(){
@@ -153,11 +149,7 @@ log_ts_info(){
 }
 
 log_ts_info2(){
-    should_log INFO && _debug_colored bgreen INFO "$@"
-}
-
-log_ts_info3(){
-    should_log INFO && _debug_colored igreen INFO "$@"
+    should_log INFO && _debug_colored cyan INFO "$@"
 }
 
 log_ts_debug(){

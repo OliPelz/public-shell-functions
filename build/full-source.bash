@@ -463,10 +463,7 @@ log_info(){
 should_log INFO && _echo_colored green [INFO] "$@"
 }
 log_info2(){
-should_log INFO && _echo_colored bgreen [INFO] "$@"
-}
-log_info3(){
-should_log INFO && _echo_colored igreen [INFO] "$@"
+should_log INFO && _echo_colored cyan [INFO] "$@"
 }
 log_debug(){
 should_log DEBUG && _echo_colored icyan [DEBUG] "$@"
@@ -485,10 +482,7 @@ log_ts_info(){
 should_log INFO && _debug_colored green INFO "$@"
 }
 log_ts_info2(){
-should_log INFO && _debug_colored bgreen INFO "$@"
-}
-log_ts_info3(){
-should_log INFO && _debug_colored igreen INFO "$@"
+should_log INFO && _debug_colored cyan INFO "$@"
 }
 log_ts_debug(){
 should_log DEBUG && _debug_colored icyan DEBUG "$@"

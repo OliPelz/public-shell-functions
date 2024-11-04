@@ -109,7 +109,8 @@ print_fatal "Fatal error message."
 
 ############################################################################
 #
-# log_ts_XXX - print log messages based on BASH_LOGLEVEL (like log4j)
+# log_XXX - print log messages based on BASH_LOGLEVEL (like log4j)
+#           to stdout
 #
 ############################################################################
 
@@ -140,7 +141,28 @@ log_abort(){
 
 ############################################################################
 #
+# log_XXX - print log messages based on BASH_LOGLEVEL (like log4j)
+#           to stdout
+#
+############################################################################
+
+log_warn_stderr(){
+    should_log WARN && _echo_colored biyellow [WARN] "$@" >&2
+}
+
+log_error_stderr(){
+    should_log ERROR && _echo_colored bired [ERROR] "$@" >&2
+}
+
+log_abort_stderr(){
+    should_log ABORT && _echo_colored bipurple [ABORT] "$@" >&2
+    exit 1
+}
+
+############################################################################
+#
 # log_ts_XXX - as log_XXX but also printing out timestamp
+#              to stdout
 #
 ############################################################################
 
@@ -168,5 +190,3 @@ log_ts_abort(){
     should_log ABORT && _debug_colored bipurple ABORT "$@"
     exit 1
 }
-
-

@@ -18,4 +18,4 @@ clean:    ## clean all dotfiles
 	@export DOTFILES_REPO_FULL_PATH=$$PWD; \
 	./make_scripts/__remove_all_dotfiles.sh; \
 	rm -rf makefiles_inc external-deps; \
-	rm $$HOME/.env/__compiled_envs_for_shells/bash-complete-env.source.sh.zsh
+	rm $$HOME/.env/__compiled_envs_for_shells/shell-complete-env.source.sh.zsh

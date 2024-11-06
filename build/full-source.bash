@@ -618,6 +618,36 @@ if [ -n "${TEMP_CERT_FILE}" ]; then
 rm "${TEMP_CERT_FILE}"
 fi
 }
+function pgit_wrapper {
+local git_command="$1"
+shift
+local args="$@"
+local git_cmd="git"
+local proxy_cmd=""
+local cert_cmd=""
+local ssh_cmd=""
+if [ "${USE_PROXY,,}" == "true" ]; then
+if test_env_variable_defined CERT_BASE64_STRING; then
+TEMP_CERT_FILE=$(create_temp_file)
+echo "${CERT_BASE64_STRING}" | base64 -d > "${TEMP_CERT_FILE}"
+cert_cmd="http.sslCAInfo=${TEMP_CERT_FILE}"
+fi
+proxy_cmd="http.proxy=${HTTPS_PROXY}"
+fi
+if test_env_variable_defined SSH_PRIVATE_KEY_PATH; then
+ssh_cmd="GIT_SSH_COMMAND='ssh -i ${SSH_PRIVATE_KEY_PATH}'"
+fi
+${git_cmd} config --global ${proxy_cmd}
+${git_cmd} config --global ${cert_cmd}
+if [ -n "${ssh_cmd}" ]; then
+eval "${ssh_cmd} ${git_cmd} ${git_command} ${args}"
+else
+${git_cmd} ${git_command} ${args}
+fi
+if [ -n "${TEMP_CERT_FILE}" ]; then
+rm "${TEMP_CERT_FILE}"
+fi
+}
 vault() {
 local action=""
 local file=""

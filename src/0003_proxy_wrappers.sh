@@ -191,3 +191,75 @@ function pwget_wrapper {
         rm "${TEMP_CERT_FILE}"
     fi
 }
+
+function pgit_wrapper {
+    : '
+    Git Proxy Wrapper
+
+    ShortDesc: A wrapper for git commands that supports optional proxy, SSL certificate, and SSH private key usage.
+
+    Description:
+    This function wraps git commands to enable operations behind a proxy with SSL certificate handling and SSH
+    private key support. It accepts the git command and arguments, checks for proxy settings, SSL certificates,
+    and an SSH private key, and then configures git accordingly.
+
+    Parameters:
+    - git_command: The git command to be executed (e.g., clone, pull, push).
+    - args: Additional arguments for the git command.
+
+    Environment Variables:
+    - USE_PROXY: Set to "true" to enable proxy usage.
+    - HTTPS_PROXY: The proxy URL to use if USE_PROXY is true.
+    - CERT_BASE64_STRING: Base64-encoded SSL certificate string for verifying proxy connections (optional).
+    - SSH_PRIVATE_KEY_PATH: Path to the SSH private key for secure access (optional).
+
+    Returns:
+    - 0: Success (git command executed successfully)
+    - 1: Failure (if the git command fails)
+
+    Example Usage:
+    pgit_wrapper "clone" "https://github.com/example/repo.git"
+    pgit_wrapper "pull" "origin main"
+    '
+
+    local git_command="$1"
+    shift
+    local args="$@"
+
+    local git_cmd="git"
+    local proxy_cmd=""
+    local cert_cmd=""
+    local ssh_cmd=""
+
+    # Set up proxy if needed
+    if [ "${USE_PROXY,,}" == "true" ]; then
+        if test_env_variable_defined CERT_BASE64_STRING; then
+            # Create a temporary file for the cert
+            TEMP_CERT_FILE=$(create_temp_file)
+            echo "${CERT_BASE64_STRING}" | base64 -d > "${TEMP_CERT_FILE}"
+            cert_cmd="http.sslCAInfo=${TEMP_CERT_FILE}"
+        fi
+        proxy_cmd="http.proxy=${HTTPS_PROXY}"
+    fi
+
+    # Set up SSH key if provided
+    if test_env_variable_defined SSH_PRIVATE_KEY_PATH; then
+        ssh_cmd="GIT_SSH_COMMAND='ssh -i ${SSH_PRIVATE_KEY_PATH}'"
+    fi
+
+    # Configure git with proxy and certificate settings
+    ${git_cmd} config --global ${proxy_cmd}
+    ${git_cmd} config --global ${cert_cmd}
+
+    # Execute git command with SSH command if necessary
+    if [ -n "${ssh_cmd}" ]; then
+        eval "${ssh_cmd} ${git_cmd} ${git_command} ${args}"
+    else
+        ${git_cmd} ${git_command} ${args}
+    fi
+
+    # Clean up temporary cert file if created
+    if [ -n "${TEMP_CERT_FILE}" ]; then
+        rm "${TEMP_CERT_FILE}"
+    fi
+}

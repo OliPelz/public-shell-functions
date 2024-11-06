@@ -460,57 +460,57 @@ return 1
 fi
 }
 log_info(){
-should_log INFO && _echo_colored green [INFO] "$@"
+should_log INFO && _echo_colored green [INFO] "$@" || true
 }
 log_info2(){
-should_log INFO && _echo_colored cyan [INFO] "$@"
+should_log INFO && _echo_colored cyan [INFO] "$@" || true
 }
 log_debug(){
-should_log DEBUG && _echo_colored icyan [DEBUG] "$@"
+should_log DEBUG && _echo_colored icyan [DEBUG] "$@" || true
 }
 log_warn(){
-should_log WARN && _echo_colored biyellow [WARN] "$@"
+should_log WARN && _echo_colored biyellow [WARN] "$@" || true
 }
 log_error(){
-should_log ERROR && _echo_colored bired [ERROR] "$@"
+should_log ERROR && _echo_colored bired [ERROR] "$@" || true
 }
 log_abort(){
-should_log ABORT && _echo_colored bipurple [ABORT] "$@"
+should_log ABORT && _echo_colored bipurple [ABORT] "$@" || true
 exit 1
 }
 log_info_stderr(){
-should_log INFO && _echo_colored green [INFO] "$@"
+should_log INFO && _echo_colored green [INFO] "$@" || true
 }
 log_debug_stderr(){
-should_log DEBUG && _echo_colored icyan [DEBUG] "$@"
+should_log DEBUG && _echo_colored icyan [DEBUG] "$@" || true
 }
 log_warn_stderr(){
-should_log WARN && _echo_colored biyellow [WARN] "$@" >&2
+should_log WARN && _echo_colored biyellow [WARN] "$@" >&2 || true
 }
 log_error_stderr(){
-should_log ERROR && _echo_colored bired [ERROR] "$@" >&2
+should_log ERROR && _echo_colored bired [ERROR] "$@" >&2 || true
 }
 log_abort_stderr(){
-should_log ABORT && _echo_colored bipurple [ABORT] "$@" >&2
+should_log ABORT && _echo_colored bipurple [ABORT] "$@" >&2 || true
 exit 1
 }
 log_ts_info(){
-should_log INFO && _debug_colored green INFO "$@"
+should_log INFO && _debug_colored green INFO "$@" || true
 }
 log_ts_info2(){
-should_log INFO && _debug_colored cyan INFO "$@"
+should_log INFO && _debug_colored cyan INFO "$@" || true
 }
 log_ts_debug(){
-should_log DEBUG && _debug_colored icyan DEBUG "$@"
+should_log DEBUG && _debug_colored icyan DEBUG "$@" || true
 }
 log_ts_warn(){
-should_log WARN &&  _debug_colored biyellow WARN "$@"
+should_log WARN &&  _debug_colored biyellow WARN "$@" || true
 }
 log_ts_error(){
-should_log ERROR && _debug_colored bired ERROR "$@"
+should_log ERROR && _debug_colored bired ERROR "$@" || true
 }
 log_ts_abort(){
-should_log ABORT && _debug_colored bipurple ABORT "$@"
+should_log ABORT && _debug_colored bipurple ABORT "$@" || true
 exit 1
 }
 parse_yaml() {

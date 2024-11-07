@@ -1,61 +1,76 @@
 #!/bin/bash
 
-function download_from_private_github {
+download_from_private_github ()
+{
     : '
-    Download from Private GitHub Repository
+        Download from Private GitHub Repository
 
-    ShortDesc: Downloads a file from a private GitHub repository using a Personal Access Token (PAT).
+        ShortDesc: Downloads a file from a private GitHub repository.
 
-    Description:
-    This function allows you to download a specific file from a private GitHub repository. It uses a personal access token
-    for authentication and the GitHub API to retrieve the file from the specified repository and branch. If the file exists
-    locally, it will be overwritten. If no output filename is provided, the file will be saved with the same name as in
-    the repository.
+        Description:
+        This function downloads a specified file from a private GitHub repository.
+        It uses a GitHub personal access token for authentication and supports optional
+        branch and output file naming. An optional parameter can disable SSL verification.
+        If the request is unsuccessful, the function returns an error.
 
-    Parameters:
-    - GITHUB_TOKEN: Personal Access Token (PAT) with access to the private repository.
-    - REPO_OWNER: GitHub repository owner (user or organization name).
-    - REPO_NAME: Name of the GitHub repository.
-    - FILE_PATH: The path to the file in the repository to download.
-    - BRANCH: The branch to download the file from (optional, defaults to "main").
-    - OUTPUT_FILE: Local file name to save the downloaded content (optional).
+        Parameters:
+        - GITHUB_TOKEN: GitHub token with access permissions to the repository.
+        - REPO_OWNER: Owner of the GitHub repository.
+        - REPO_NAME: Name of the GitHub repository.
+        - FILE_PATH: Path to the file within the repository.
+        - BRANCH (optional): The branch to download from. Defaults to "main".
+        - OUTPUT_FILE (optional): Name of the output file. Defaults to the basename of FILE_PATH.
+        - --no-verify (optional): Disables SSL certificate verification for curl requests.
 
-    Returns:
-    - 0: Success (file downloaded successfully)
-    - 1: Failure (missing parameters or file download failed)
+        Returns:
+        - 0: Success
+        - 1: Failure if download fails or if parameters are missing.
 
-    Example Usage:
-    download_from_private_github "your_personal_access_token" "owner" "repo" "path/to/file.txt"
-    download_from_private_github "your_personal_access_token" "owner" "repo" "path/to/file.txt" "main" "local_file.txt"
-
+        Example Usage:
+        download_from_private_github "<GITHUB_TOKEN>" "owner" "repo" "path/to/file" "branch" "output_file" --no-verify
     '
 
-    local GITHUB_TOKEN=$1
-    local REPO_OWNER=$2
-    local REPO_NAME=$3
-    local FILE_PATH=$4
-    local BRANCH=${5:-main}
-    local OUTPUT_FILE=${6:-$(basename "$FILE_PATH")}
+    # Parameters
+    local GITHUB_TOKEN=$1;
+    local REPO_OWNER=$2;
+    local REPO_NAME=$3;
+    local FILE_PATH=$4;
+    local BRANCH=${5:-main};
+    local OUTPUT_FILE=${6:-$(basename "$FILE_PATH")};
+    local VERIFY_SSL=true;
 
-    # Validate arguments
+    # Check for optional --no-verify parameter
+    for param in "$@"; do
+        if [[ "$param" == "--no-verify" ]]; then
+            VERIFY_SSL=false;
+            break;
+        fi
+    done
+
+    # Validate required parameters
     if [[ -z "$GITHUB_TOKEN" || -z "$REPO_OWNER" || -z "$REPO_NAME" || -z "$FILE_PATH" ]]; then
-        echo "Usage: download_from_private_github <GITHUB_TOKEN> <REPO_OWNER> <REPO_NAME> <FILE_PATH> [<BRANCH>] [<OUTPUT_FILE>]"
-        return 1
+        echo "Usage: download_from_private_github <GITHUB_TOKEN> <REPO_OWNER> <REPO_NAME> <FILE_PATH> [<BRANCH>] [<OUTPUT_FILE>] [--no-verify]";
+        return 1;
+    fi;
+
+    # Set curl options based on SSL verification
+    local CURL_OPTS="-H 'Authorization: token $GITHUB_TOKEN' -H 'Accept: application/vnd.github.v3.raw' -L"
+    if [[ "$VERIFY_SSL" == false ]]; then
+        CURL_OPTS="$CURL_OPTS -k"
     fi
 
-    # Download the file using curl
-    curl -H "Authorization: token $GITHUB_TOKEN" \
-         -H "Accept: application/vnd.github.v3.raw" \
-         -L "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/contents/$FILE_PATH?ref=$BRANCH" \
-         -o "$OUTPUT_FILE"
+    # Download file and check HTTP status
+    local response
+    response=$(curl $CURL_OPTS -w "%{http_code}" -o "$OUTPUT_FILE" "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/contents/$FILE_PATH?ref=$BRANCH")
+    local http_status="${response: -3}"  # Extract the last 3 characters (HTTP code)
 
-    # Check if the file was successfully downloaded
-    if [[ $? -eq 0 ]]; then
-        echo "File downloaded successfully to $OUTPUT_FILE."
-        return 0
+    if [[ "$http_status" -eq 200 ]]; then
+        echo "File downloaded successfully to $OUTPUT_FILE.";
+        return 0;
     else
-        echo "Failed to download the file."
-        return 1
+        echo "Error: Failed to download the file. HTTP status $http_status.";
+        rm -f "$OUTPUT_FILE"  # Remove partial download if unsuccessful
+        return 1;
     fi
 }
 

@@ -40,6 +40,7 @@ source ${DOTFILES_REPO_FULL_PATH}/src/0003_logging.sh
 ## now we can use all my external functions
 #########################################################################################################
 
+# TODO: if you need further tests, add them here
 
 if [ "${has_error}" == "true" ]; then
 	exit 1

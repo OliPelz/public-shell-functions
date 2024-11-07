@@ -26,7 +26,7 @@ to first time init run
 if you want to compile without former init run
 
 ```bash
-./first-time-run.sh
+./__first-time-run.sh
 ```
 
 Note: after running `make clean` you need to run `./__init.sh` again

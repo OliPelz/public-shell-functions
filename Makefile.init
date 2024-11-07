@@ -57,7 +57,7 @@ requirements: configure-git-project ## install all requirements
 	# $(MAKE) add-git-hooks && \
 	# mkdir -p ./external-deps && \
 	# ( \
-	# $(MAKE) git-clone-or-pull GIT_REPO_URL=https://github.com/OliPelz/public-shell-functions.git TARGET_DIR=./external-deps/public-shell-functions TO_GITIGNORE=true && cd ./external-deps/public-shell-functions && ./first-time-run.sh; \
+	# $(MAKE) git-clone-or-pull GIT_REPO_URL=https://github.com/OliPelz/public-shell-functions.git TARGET_DIR=./external-deps/public-shell-functions TO_GITIGNORE=true && cd ./external-deps/public-shell-functions && ./__first-time-run.sh; \
     # ); \
 	# ( \
 	# $(MAKE) git-clone-or-pull GIT_REPO_URL=https://github.com/OliPelz/public-shell-scripts.git TARGET_DIR=./external-deps/public-shell-scripts TO_GITIGNORE=true; \

@@ -20,7 +20,7 @@ NOTES:
 to first time init run
 
 ```bash
-./init.sh
+./__init.sh
 ```
 
 if you want to compile without former init run
@@ -29,4 +29,4 @@ if you want to compile without former init run
 ./first-time-run.sh
 ```
 
-Note: after running `make clean` you need to run `./init.sh` again
+Note: after running `make clean` you need to run `./__init.sh` again

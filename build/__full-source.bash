@@ -224,27 +224,39 @@ zsh_colors=(
 [reset]="%f%b"
 )
 fi
-function download_from_private_github {
-local GITHUB_TOKEN=$1
-local REPO_OWNER=$2
-local REPO_NAME=$3
-local FILE_PATH=$4
-local BRANCH=${5:-main}
-local OUTPUT_FILE=${6:-$(basename "$FILE_PATH")}
-if [[ -z "$GITHUB_TOKEN" || -z "$REPO_OWNER" || -z "$REPO_NAME" || -z "$FILE_PATH" ]]; then
-echo "Usage: download_from_private_github <GITHUB_TOKEN> <REPO_OWNER> <REPO_NAME> <FILE_PATH> [<BRANCH>] [<OUTPUT_FILE>]"
-return 1
+download_from_private_github ()
+{
+local GITHUB_TOKEN=$1;
+local REPO_OWNER=$2;
+local REPO_NAME=$3;
+local FILE_PATH=$4;
+local BRANCH=${5:-main};
+local OUTPUT_FILE=${6:-$(basename "$FILE_PATH")};
+local VERIFY_SSL=true;
+for param in "$@"; do
+if [[ "$param" == "--no-verify" ]]; then
+VERIFY_SSL=false;
+break;
 fi
-curl -H "Authorization: token $GITHUB_TOKEN" \
--H "Accept: application/vnd.github.v3.raw" \
--L "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/contents/$FILE_PATH?ref=$BRANCH" \
--o "$OUTPUT_FILE"
-if [[ $? -eq 0 ]]; then
-echo "File downloaded successfully to $OUTPUT_FILE."
-return 0
+done
+if [[ -z "$GITHUB_TOKEN" || -z "$REPO_OWNER" || -z "$REPO_NAME" || -z "$FILE_PATH" ]]; then
+echo "Usage: download_from_private_github <GITHUB_TOKEN> <REPO_OWNER> <REPO_NAME> <FILE_PATH> [<BRANCH>] [<OUTPUT_FILE>] [--no-verify]";
+return 1;
+fi;
+local CURL_OPTS="-H 'Authorization: token $GITHUB_TOKEN' -H 'Accept: application/vnd.github.v3.raw' -L"
+if [[ "$VERIFY_SSL" == false ]]; then
+CURL_OPTS="$CURL_OPTS -k"
+fi
+local response
+response=$(curl $CURL_OPTS -w "%{http_code}" -o "$OUTPUT_FILE" "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/contents/$FILE_PATH?ref=$BRANCH")
+local http_status="${response: -3}"  # Extract the last 3 characters (HTTP code)
+if [[ "$http_status" -eq 200 ]]; then
+echo "File downloaded successfully to $OUTPUT_FILE.";
+return 0;
 else
-echo "Failed to download the file."
-return 1
+echo "Error: Failed to download the file. HTTP status $http_status.";
+rm -f "$OUTPUT_FILE"
+return 1;
 fi
 }
 function download_directory_from_github {

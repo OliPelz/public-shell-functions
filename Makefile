@@ -11,7 +11,7 @@ requirements: git-add-hooks  ## install all requirements
 
 ##########################################################################################
 ## build:
-compile:  ## install all dotfiles
+compile:  requirements ## install all dotfiles
 	@export DOTFILES_REPO_FULL_PATH=$$PWD; \
 	for i in __make_scripts/[0-9]*; do set -e && ./$$i; done
 clean:    ## clean all dotfiles

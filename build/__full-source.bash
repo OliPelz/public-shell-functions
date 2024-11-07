@@ -224,40 +224,46 @@ zsh_colors=(
 [reset]="%f%b"
 )
 fi
-download_from_private_github ()
-{
-local GITHUB_TOKEN=$1;
-local REPO_OWNER=$2;
-local REPO_NAME=$3;
-local FILE_PATH=$4;
-local BRANCH=${5:-main};
-local OUTPUT_FILE=${6:-$(basename "$FILE_PATH")};
-local VERIFY_SSL=true;
-for param in "$@"; do
-if [[ "$param" == "--no-verify" ]]; then
-VERIFY_SSL=false;
-break;
-fi
+download_from_private_github() {
+local GITHUB_TOKEN="" REPO_OWNER="" REPO_NAME="" FILE_PATH=""
+local BRANCH="main" OUTPUT_FILE="" INSECURE="" DRY_RUN="false"
+while [[ "$#" -gt 0 ]]; do
+case "$1" in
+--token) GITHUB_TOKEN="$2"; shift ;;
+--owner) REPO_OWNER="$2"; shift ;;
+--repo) REPO_NAME="$2"; shift ;;
+--file) FILE_PATH="$2"; shift ;;
+--branch) BRANCH="$2"; shift ;;
+--output) OUTPUT_FILE="$2"; shift ;;
+--insecure) INSECURE="-k" ;;
+--dry-run) DRY_RUN="true" ;;
+*) echo "Unknown parameter: $1"; return 1 ;;
+esac
+shift
 done
 if [[ -z "$GITHUB_TOKEN" || -z "$REPO_OWNER" || -z "$REPO_NAME" || -z "$FILE_PATH" ]]; then
-echo "Usage: download_from_private_github <GITHUB_TOKEN> <REPO_OWNER> <REPO_NAME> <FILE_PATH> [<BRANCH>] [<OUTPUT_FILE>] [--no-verify]";
-return 1;
-fi;
-local CURL_OPTS="-H 'Authorization: token $GITHUB_TOKEN' -H 'Accept: application/vnd.github.v3.raw' -L"
-if [[ "$VERIFY_SSL" == false ]]; then
-CURL_OPTS="$CURL_OPTS -k"
+echo "Usage: download_from_private_github --token <GITHUB_TOKEN> --owner <REPO_OWNER> --repo <REPO_NAME> --file <FILE_PATH> [--branch <BRANCH>] [--output <OUTPUT_FILE>] [--insecure] [--dry-run]"
+return 1
 fi
-local response
-response=$(curl $CURL_OPTS -w "%{http_code}" -o "$OUTPUT_FILE" "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/contents/$FILE_PATH?ref=$BRANCH")
-local http_status="${response: -3}"  # Extract the last 3 characters (HTTP code)
-if [[ "$http_status" -eq 200 ]]; then
-echo "File downloaded successfully to $OUTPUT_FILE.";
-return 0;
-else
-echo "Error: Failed to download the file. HTTP status $http_status.";
-rm -f "$OUTPUT_FILE"
-return 1;
+OUTPUT_FILE="${OUTPUT_FILE:-$(basename "$FILE_PATH")}"
+local curl_cmd
+curl_cmd="curl -H \"Authorization: token $GITHUB_TOKEN\" -H \"Accept: application/vnd.github.v3.raw\" -L \"https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/contents/$FILE_PATH?ref=$BRANCH\" $INSECURE -o \"$OUTPUT_FILE\""
+if [[ "$DRY_RUN" == "true" ]]; then
+echo "Dry-run: Command to execute:"
+echo "$curl_cmd"
+return 0
 fi
+eval "$curl_cmd"
+local response_code=$?
+if [[ $response_code -ne 0 ]]; then
+echo "Failed to download the file. Curl returned error code $response_code."
+return 1
+elif [[ "$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3.raw" -L "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/contents/$FILE_PATH?ref=$BRANCH")" -ne 200 ]]; then
+echo "Failed to download the file. Received non-200 HTTP response code."
+return 1
+fi
+echo "File downloaded successfully to $OUTPUT_FILE."
+return 0
 }
 function download_directory_from_github {
 local GITHUB_TOKEN=$1

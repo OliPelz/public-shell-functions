@@ -13,9 +13,9 @@ requirements: git-add-hooks  ## install all requirements
 ## build:
 compile:  ## install all dotfiles
 	@export DOTFILES_REPO_FULL_PATH=$$PWD; \
-	for i in make_scripts/[0-9]*; do set -e && ./$$i; done
+	for i in __make_scripts/[0-9]*; do set -e && ./$$i; done
 clean:    ## clean all dotfiles
 	@export DOTFILES_REPO_FULL_PATH=$$PWD; \
-	./make_scripts/__remove_all_dotfiles.sh; \
+	./__make_scripts/__remove_all_dotfiles.sh; \
 	rm -rf makefiles_inc external-deps; \
 	rm $$HOME/.env/__compiled_envs_for_shells/shell-complete-env.source.sh.zsh

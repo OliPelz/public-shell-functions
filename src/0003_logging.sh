@@ -110,32 +110,32 @@ print_fatal "Fatal error message."
 ############################################################################
 #
 # log_XXX - print log messages based on BASH_LOGLEVEL (like log4j)
-#           to stdout
+#           to stderr
 #
 ############################################################################
 
 log_info(){
-    should_log INFO && _echo_colored green [INFO] "$@" || true
+    should_log INFO && _echo_colored green [INFO] "$@" >&2 || true
 }
 
 log_info2(){
-    should_log INFO && _echo_colored cyan [INFO] "$@" || true
+    should_log INFO && _echo_colored cyan [INFO] "$@" >&2 || true
 }
 
 log_debug(){
-    should_log DEBUG && _echo_colored icyan [DEBUG] "$@" || true 
+    should_log DEBUG && _echo_colored icyan [DEBUG] "$@" >&2 || true 
 }
 
 log_warn(){
-    should_log WARN && _echo_colored biyellow [WARN] "$@" || true
+    should_log WARN && _echo_colored biyellow [WARN] "$@" >&2 || true
 }
 
 log_error(){
-    should_log ERROR && _echo_colored bired [ERROR] "$@" || true
+    should_log ERROR && _echo_colored bired [ERROR] "$@" >&2 || true
 }
 
 log_abort(){
-    should_log ABORT && _echo_colored bipurple [ABORT] "$@" || true
+    should_log ABORT && _echo_colored bipurple [ABORT] "$@" >&2 || true
     exit 1
 }
 
@@ -146,55 +146,55 @@ log_abort(){
 #
 ############################################################################
 
-log_info_stderr(){
+log_info_stdout(){
     should_log INFO && _echo_colored green [INFO] "$@" || true
 }
 
-log_debug_stderr(){
+log_debug_stout(){
     should_log DEBUG && _echo_colored icyan [DEBUG] "$@" || true
 }
 
-log_warn_stderr(){
-    should_log WARN && _echo_colored biyellow [WARN] "$@" >&2 || true
+log_warn_stdout(){
+    should_log WARN && _echo_colored biyellow [WARN] "$@" || true
 }
 
-log_error_stderr(){
-    should_log ERROR && _echo_colored bired [ERROR] "$@" >&2 || true
+log_error_stdout(){
+    should_log ERROR && _echo_colored bired [ERROR] "$@" || true
 }
 
-log_abort_stderr(){
-    should_log ABORT && _echo_colored bipurple [ABORT] "$@" >&2 || true
+log_abort_stdout(){
+    should_log ABORT && _echo_colored bipurple [ABORT] "$@" || true
     exit 1
 }
 
 ############################################################################
 #
 # log_ts_XXX - as log_XXX but also printing out timestamp
-#              to stdout
+#              to stderr
 #
 ############################################################################
 
 log_ts_info(){
-    should_log INFO && _debug_colored green INFO "$@" || true
+    should_log INFO && _debug_colored green INFO "$@" >&2 || true
 }
 
 log_ts_info2(){
-    should_log INFO && _debug_colored cyan INFO "$@" || true
+    should_log INFO && _debug_colored cyan INFO "$@" >&2 || true
 }
 
 log_ts_debug(){
-    should_log DEBUG && _debug_colored icyan DEBUG "$@" || true
+    should_log DEBUG && _debug_colored icyan DEBUG "$@" >&2 || true
 }
 
 log_ts_warn(){
-   should_log WARN &&  _debug_colored biyellow WARN "$@" || true
+   should_log WARN &&  _debug_colored biyellow WARN "$@" >&2 || true
 }
 
 log_ts_error(){
-    should_log ERROR && _debug_colored bired ERROR "$@" || true
+    should_log ERROR && _debug_colored bired ERROR "$@" >&2 || true
 }
 
 log_ts_abort(){
-    should_log ABORT && _debug_colored bipurple ABORT "$@" || true
+    should_log ABORT && _debug_colored bipurple ABORT "$@" >&2 || true
     exit 1
 }

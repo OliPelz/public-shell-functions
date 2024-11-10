@@ -216,7 +216,7 @@ lineinfile() {
     elif [[ "$action" == "remove" ]]; then
         remove_line
     else
-        log_error_stderr "No action specified. Use -a to add or -r to remove."
+        log_error "No action specified. Use -a to add or -r to remove."
         return 1
     fi
 }

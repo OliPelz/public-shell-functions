@@ -224,68 +224,105 @@ zsh_colors=(
 [reset]="%f%b"
 )
 fi
-download_from_private_github() {
-local GITHUB_TOKEN="" REPO_OWNER="" REPO_NAME="" FILE_PATH=""
-local BRANCH="main" OUTPUT_FILE="" INSECURE="" DRY_RUN="false"
+download_file_from_github () {
+local GITHUB_TOKEN=""
+local REPO_OWNER=""
+local REPO_NAME=""
+local FILE_PATH=""
+local BRANCH="main"
+local OUTPUT_FILE=""
+local TIMEOUT=600
+local PRIVATE=false
+local DRY_RUN=false
 while [[ "$#" -gt 0 ]]; do
 case "$1" in
 --token) GITHUB_TOKEN="$2"; shift ;;
---owner) REPO_OWNER="$2"; shift ;;
---repo) REPO_NAME="$2"; shift ;;
---file) FILE_PATH="$2"; shift ;;
+--repo_owner) REPO_OWNER="$2"; shift ;;
+--repo_name) REPO_NAME="$2"; shift ;;
+--file_path) FILE_PATH="$2"; shift ;;
 --branch) BRANCH="$2"; shift ;;
---output) OUTPUT_FILE="$2"; shift ;;
---insecure) INSECURE="-k" ;;
---dry-run) DRY_RUN="true" ;;
+--output_file) OUTPUT_FILE="$2"; shift ;;
+--timeout) TIMEOUT="$2"; shift ;;
+--private) PRIVATE=true ;;
+--dry-run) DRY_RUN=true ;;
 *) echo "Unknown parameter: $1"; return 1 ;;
 esac
 shift
 done
-if [[ -z "$GITHUB_TOKEN" || -z "$REPO_OWNER" || -z "$REPO_NAME" || -z "$FILE_PATH" ]]; then
-echo "Usage: download_from_private_github --token <GITHUB_TOKEN> --owner <REPO_OWNER> --repo <REPO_NAME> --file <FILE_PATH> [--branch <BRANCH>] [--output <OUTPUT_FILE>] [--insecure] [--dry-run]"
+if [[ -z "$REPO_OWNER" || -z "$REPO_NAME" || -z "$FILE_PATH" ]]; then
+echo "Usage: download_file_from_github --repo_owner <OWNER> --repo_name <REPO> --file_path <PATH> [--branch <BRANCH>] [--output_file <OUTPUT_FILE>] [--timeout <SECONDS>] [--private] [--dry-run]"
 return 1
 fi
 OUTPUT_FILE="${OUTPUT_FILE:-$(basename "$FILE_PATH")}"
-local curl_cmd
-curl_cmd="curl -H \"Authorization: token $GITHUB_TOKEN\" -H \"Accept: application/vnd.github.v3.raw\" -L \"https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/contents/$FILE_PATH?ref=$BRANCH\" $INSECURE -o \"$OUTPUT_FILE\""
-if [[ "$DRY_RUN" == "true" ]]; then
-echo "Dry-run: Command to execute:"
-echo "$curl_cmd"
+local curl_cmd=("curl" "-L" "--max-time" "$TIMEOUT" "-o" "$OUTPUT_FILE")
+if [[ "$PRIVATE" == true ]]; then
+if [[ -z "$GITHUB_TOKEN" ]]; then
+echo "[ERROR] GitHub token is required for private repository access."
+return 1
+fi
+curl_cmd+=("-H" "Authorization: token $GITHUB_TOKEN" "-H" "Accept: application/vnd.github.v3.raw")
+else
+curl_cmd+=("-H" "Accept: application/vnd.github.v3.raw")
+fi
+curl_cmd+=("https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/contents/$FILE_PATH?ref=$BRANCH")
+if [[ "$DRY_RUN" == true ]]; then
+echo "Dry-run: ${curl_cmd[@]}"
 return 0
 fi
-eval "$curl_cmd"
-local response_code=$?
-if [[ $response_code -ne 0 ]]; then
-echo "Failed to download the file. Curl returned error code $response_code."
-return 1
-elif [[ "$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3.raw" -L "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/contents/$FILE_PATH?ref=$BRANCH")" -ne 200 ]]; then
-echo "Failed to download the file. Received non-200 HTTP response code."
-return 1
-fi
+if "${curl_cmd[@]}"; then
 echo "File downloaded successfully to $OUTPUT_FILE."
 return 0
-}
-function download_directory_from_github {
-local GITHUB_TOKEN=$1
-local REPO_OWNER=$2
-local REPO_NAME=$3
-local DIRECTORY_PATH=$4
-local BRANCH=${5:-main}
-local TARGET_DIR=${6:-$(basename "$DIRECTORY_PATH")}
-if [[ -z "$GITHUB_TOKEN" || -z "$REPO_OWNER" || -z "$REPO_NAME" || -z "$DIRECTORY_PATH" ]]; then
-echo "Usage: download_directory_from_github <GITHUB_TOKEN> <REPO_OWNER> <REPO_NAME> <DIRECTORY_PATH> [<BRANCH>] [<TARGET_DIR>]"
+else
+echo "[ERROR] Failed to download the file."
 return 1
 fi
-mkdir -p "$TARGET_DIR"
-file_list=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
--H "Accept: application/vnd.github.v3+json" \
-"https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/contents/$DIRECTORY_PATH?ref=$BRANCH")
-echo "$file_list" | jq -r '.[] | select(.type == "file") | .download_url' | while read -r file_url; do
-file_name=$(basename "$file_url")
-curl -H "Authorization: token $GITHUB_TOKEN" -L "$file_url" -o "$TARGET_DIR/$file_name"
+}
+download_directory_from_github() {
+local github_token=""
+local repo_owner=""
+local repo_name=""
+local dir_path=""
+local branch="main"
+local output_dir=""
+local private=false
+while [[ "$#" -gt 0 ]]; do
+case "$1" in
+--github_token) github_token="$2"; shift ;;
+--repo_owner) repo_owner="$2"; shift ;;
+--repo_name) repo_name="$2"; shift ;;
+--dir_path) dir_path="$2"; shift ;;
+--branch) branch="$2"; shift ;;
+--output_dir) output_dir="$2"; shift ;;
+--private) private=true ;;
+*) echo "Unknown parameter: $1"; return 1 ;;
+esac
+shift
 done
-echo "Directory downloaded successfully to $TARGET_DIR."
+if [[ -z "$repo_owner" || -z "$repo_name" || -z "$dir_path" ]]; then
+echo "Error: Missing required parameters."
+echo "Usage: download_directory_from_github --repo_owner <owner> --repo_name <name> --dir_path <directory> [--branch <branch>] [--output_dir <directory>] [--private]"
+return 1
+fi
+output_dir="${output_dir:-$dir_path}"
+local api_url="https://api.github.com/repos/$repo_owner/$repo_name/contents/$dir_path?ref=$branch"
+local curl_cmd="curl -L"
+if $private; then
+if [[ -z "$github_token" ]]; then
+echo "Error: GitHub token is required for private repositories."
+return 1
+fi
+curl_cmd+=" -H \"Authorization: token $github_token\""
+fi
+curl_cmd+=" -H \"Accept: application/vnd.github.v3.raw\" \"$api_url\""
+mkdir -p "$output_dir" || { echo "Failed to create output directory $output_dir"; return 1; }
+eval "$curl_cmd" -o "$output_dir/$dir_path.zip"
+if [[ $? -eq 0 ]]; then
+echo "Directory downloaded successfully to $output_dir."
 return 0
+else
+echo "Failed to download the directory."
+return 1
+fi
 }
 git_clone_or_pull() {
 local repo_url=""
@@ -449,7 +486,7 @@ add_line
 elif [[ "$action" == "remove" ]]; then
 remove_line
 else
-log_error_stderr "No action specified. Use -a to add or -r to remove."
+log_error "No action specified. Use -a to add or -r to remove."
 return 1
 fi
 }
@@ -498,57 +535,57 @@ return 1
 fi
 }
 log_info(){
-should_log INFO && _echo_colored green [INFO] "$@" || true
+should_log INFO && _echo_colored green [INFO] "$@" >&2 || true
 }
 log_info2(){
-should_log INFO && _echo_colored cyan [INFO] "$@" || true
+should_log INFO && _echo_colored cyan [INFO] "$@" >&2 || true
 }
 log_debug(){
-should_log DEBUG && _echo_colored icyan [DEBUG] "$@" || true
+should_log DEBUG && _echo_colored icyan [DEBUG] "$@" >&2 || true
 }
 log_warn(){
-should_log WARN && _echo_colored biyellow [WARN] "$@" || true
-}
-log_error(){
-should_log ERROR && _echo_colored bired [ERROR] "$@" || true
-}
-log_abort(){
-should_log ABORT && _echo_colored bipurple [ABORT] "$@" || true
-exit 1
-}
-log_info_stderr(){
-should_log INFO && _echo_colored green [INFO] "$@" || true
-}
-log_debug_stderr(){
-should_log DEBUG && _echo_colored icyan [DEBUG] "$@" || true
-}
-log_warn_stderr(){
 should_log WARN && _echo_colored biyellow [WARN] "$@" >&2 || true
 }
-log_error_stderr(){
+log_error(){
 should_log ERROR && _echo_colored bired [ERROR] "$@" >&2 || true
 }
-log_abort_stderr(){
+log_abort(){
 should_log ABORT && _echo_colored bipurple [ABORT] "$@" >&2 || true
 exit 1
 }
+log_info_stdout(){
+should_log INFO && _echo_colored green [INFO] "$@" || true
+}
+log_debug_stout(){
+should_log DEBUG && _echo_colored icyan [DEBUG] "$@" || true
+}
+log_warn_stdout(){
+should_log WARN && _echo_colored biyellow [WARN] "$@" || true
+}
+log_error_stdout(){
+should_log ERROR && _echo_colored bired [ERROR] "$@" || true
+}
+log_abort_stdout(){
+should_log ABORT && _echo_colored bipurple [ABORT] "$@" || true
+exit 1
+}
 log_ts_info(){
-should_log INFO && _debug_colored green INFO "$@" || true
+should_log INFO && _debug_colored green INFO "$@" >&2 || true
 }
 log_ts_info2(){
-should_log INFO && _debug_colored cyan INFO "$@" || true
+should_log INFO && _debug_colored cyan INFO "$@" >&2 || true
 }
 log_ts_debug(){
-should_log DEBUG && _debug_colored icyan DEBUG "$@" || true
+should_log DEBUG && _debug_colored icyan DEBUG "$@" >&2 || true
 }
 log_ts_warn(){
-should_log WARN &&  _debug_colored biyellow WARN "$@" || true
+should_log WARN &&  _debug_colored biyellow WARN "$@" >&2 || true
 }
 log_ts_error(){
-should_log ERROR && _debug_colored bired ERROR "$@" || true
+should_log ERROR && _debug_colored bired ERROR "$@" >&2 || true
 }
 log_ts_abort(){
-should_log ABORT && _debug_colored bipurple ABORT "$@" || true
+should_log ABORT && _debug_colored bipurple ABORT "$@" >&2 || true
 exit 1
 }
 parse_yaml() {
@@ -563,7 +600,7 @@ fi
 local parsed_output
 parsed_output=$(yq -r "$parse_string" <(grep -v '^#' "$input_file") 2>/dev/null)
 if [[ $? -ne 0 ]]; then
-log_error_stderr "Failed to parse YAML file."
+log_error "Failed to parse YAML file."
 return 1
 fi
 case "$output_mode" in
@@ -574,7 +611,7 @@ outfile)
 if [[ -n "$outfile_path" ]]; then
 echo "$parsed_output" > "$outfile_path"
 else
-log_error_stderr "Error: Outfile path not specified."
+log_error "Error: Outfile path not specified."
 return 1
 fi
 ;;
